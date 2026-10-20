@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import FloatingAssistantButton from "@/components/FloatingAssistantButton";
@@ -42,6 +43,26 @@ const AIPaymentAssistant = dynamic(() => import("@/components/AIPaymentAssistant
   ssr: false,
   loading: () => <AiAssistantLoading />,
 });
+
+const MonthlySpendingChart = dynamic(
+  () => import("@/components/DashboardCharts").then((mod) => mod.MonthlySpendingChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="card mb-6 h-[350px] animate-pulse bg-white/[0.03] border-white/10" />
+    ),
+  }
+);
+
+const ThirtyDayVolumeChart = dynamic(
+  () => import("@/components/DashboardCharts").then((mod) => mod.ThirtyDayVolumeChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="card mb-6 h-[280px] animate-pulse bg-white/[0.03] border-white/10" />
+    ),
+  }
+);
 
 // recharts is only needed by the two analytics widgets below the wallet summary,
 // so both charts come from one module that the page fetches asynchronously: the
@@ -105,6 +126,8 @@ function AiAssistantLoading() {
     </div>
   );
 }
+
+
 
 import Toast from "@/components/Toast";
 import ExternalPaymentBanner from "@/components/ExternalPaymentBanner";
@@ -1179,13 +1202,24 @@ export default function Dashboard({ stellarURI }: DashboardProps) {
       <div className="mb-8">
         {/* Focus target after wallet connect / navigation so focus lands on the
             dashboard content instead of a now-hidden control (#252). */}
-        <h1
-          ref={dashboardHeadingRef}
-          tabIndex={-1}
-          className="font-display text-3xl font-bold text-white mb-1 outline-none"
-        >
-          {t("dashboard.title")}
-        </h1>
+        <div className="flex items-center gap-3 mb-1">
+          <Image
+            src="/icon-192.png"
+            alt="Stellar MicroPay"
+            width={32}
+            height={32}
+            priority
+            unoptimized
+            className="rounded-lg h-8 w-8 object-contain"
+          />
+          <h1
+            ref={dashboardHeadingRef}
+            tabIndex={-1}
+            className="font-display text-3xl font-bold text-white outline-none"
+          >
+            {t("dashboard.title")}
+          </h1>
+        </div>
         <p className="text-slate-400 text-sm">{t("dashboard.tagline")}</p>
         <div className="mt-4">
           <button
@@ -1899,6 +1933,8 @@ function PaymentStatsWidget({
     </section>
   );
 }
+
+
 
 function TopRecipientsWidget({
   recipients,
