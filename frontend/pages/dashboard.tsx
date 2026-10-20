@@ -58,7 +58,7 @@ const ThirtyDayVolumeChart = dynamic(
 
 // Same reasoning for the panels that pull in other heavy dependencies: the
 // request generator renders qrcode.react, and both cards sit below the fold.
-const PaymentRequestGenerator = dynamic(() => import("@/pages/PaymentRequestGenerator"), {
+const PaymentRequestGenerator = dynamic(() => import("@/components/PaymentRequestGenerator"), {
   ssr: false,
   loading: () => <WidgetSkeleton heightClass="h-[240px]" />,
 });
