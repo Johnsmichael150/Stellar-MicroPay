@@ -281,7 +281,7 @@ export default function SettingsPage() {
         <title>{t("pages.settings.title")}</title>
       </Head>
       <div className="min-h-screen bg-white dark:bg-cosmos-900">
-        <main className="mx-auto max-w-2xl px-4 py-8">
+        <main id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-4 py-8">
           <div className="space-y-8">
             <div>
               <h1 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-2">
