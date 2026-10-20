@@ -64,6 +64,44 @@ const ThirtyDayVolumeChart = dynamic(
   }
 );
 
+// recharts is only needed by the two analytics widgets below the wallet summary,
+// so both charts come from one module that the page fetches asynchronously: the
+// charting library then lands in its own chunk instead of the dashboard's
+// initial bundle (#1442).
+const MonthlySpendingChart = dynamic(
+  () => import("@/components/DashboardCharts").then((m) => m.MonthlySpendingChart),
+  { ssr: false, loading: () => <WidgetSkeleton heightClass="h-[350px]" /> }
+);
+const ThirtyDayVolumeChart = dynamic(
+  () => import("@/components/DashboardCharts").then((m) => m.ThirtyDayVolumeChart),
+  { ssr: false, loading: () => <WidgetSkeleton heightClass="h-[280px]" /> }
+);
+
+// Same reasoning for the panels that pull in other heavy dependencies: the
+// request generator renders qrcode.react, and both cards sit below the fold.
+const PaymentRequestGenerator = dynamic(() => import("@/pages/PaymentRequestGenerator"), {
+  ssr: false,
+  loading: () => <WidgetSkeleton heightClass="h-[240px]" />,
+});
+const PaymentInsightsCard = dynamic(() => import("@/components/PaymentInsightsCard"), {
+  ssr: false,
+  loading: () => <WidgetSkeleton heightClass="h-[190px]" />,
+});
+const AddUsdcTrustline = dynamic(() => import("@/components/AddUsdcTrustline"), {
+  ssr: false,
+  loading: () => <WidgetSkeleton heightClass="h-[72px]" />,
+});
+
+/** Height-matched placeholder so an async widget does not shift the layout. */
+function WidgetSkeleton({ heightClass }: { heightClass: string }) {
+  return (
+    <div
+      className={`card mb-6 ${heightClass} animate-pulse bg-white/[0.03] border-white/10`}
+      aria-hidden="true"
+    />
+  );
+}
+
 /** Loading placeholders rendered while dynamically-imported panels load. */
 function MultiSigLoading() {
   const { t } = useTranslation();
@@ -93,7 +131,6 @@ function AiAssistantLoading() {
 
 import Toast from "@/components/Toast";
 import ExternalPaymentBanner from "@/components/ExternalPaymentBanner";
-import PaymentRequestGenerator from "@/pages/PaymentRequestGenerator";
 
 import {
   getXLMBalance,
@@ -939,26 +976,6 @@ export default function Dashboard({ stellarURI }: DashboardProps) {
   };
 
 
-  // Onboarding tour logic
-  useEffect(() => {
-    if (publicKey) {
-      const hasSeenTour = localStorage.getItem("stellar-micropay:onboarding-completed");
-      if (!hasSeenTour) {
-        setShowOnboardingTour(true);
-      }
-    }
-  }, [publicKey]);
-
-  const handleTourComplete = () => {
-    setShowOnboardingTour(false);
-    localStorage.setItem("stellar-micropay:onboarding-completed", "true");
-  };
-
-  const handleTourSkip = () => {
-    setShowOnboardingTour(false);
-    localStorage.setItem("stellar-micropay:onboarding-completed", "true");
-  };
-
   const handlePaymentSuccess = () => {
     setTimeout(() => {
       setRefreshKey((k) => k + 1);
@@ -1430,7 +1447,7 @@ export default function Dashboard({ stellarURI }: DashboardProps) {
                   <p className="text-sm text-slate-400 mt-0.5">
                     {formatUSD(parseFloat(xlmBalance) * xlmPrice)}{" "}
                     <span className="text-[11px] text-slate-500">
-                      ≈ {fiatSymbol} {formatNumber(parseFloat(xlmBalance) * xlmPrice * fiatRate, "XLM", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {fiatCurrency}
+                      ≈ {fiatSymbol}{formatNumber(parseFloat(xlmBalance) * xlmPrice * fiatRate, "XLM", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {fiatCurrency}
                     </span>
                   </p>
                 )}

@@ -6,6 +6,13 @@
  */
 
 import React from "react";
+ *
+ * The recharts-powered dashboard widgets, kept out of `pages/dashboard.tsx` so
+ * the charting library is not part of the dashboard's initial bundle. The page
+ * imports these through `next/dynamic`, which puts recharts in its own async
+ * chunk that only downloads when the analytics widgets mount (#1442).
+ */
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -32,11 +39,49 @@ export interface MonthlySpendingChartProps {
   onBarClick: (data: any) => void;
 }
 
+/** One bar in the monthly spending chart. */
+export interface MonthlySpendingPoint {
+  month: string;
+  monthIndex: number;
+  year: number;
+  label: string;
+  sent: number;
+  received: number;
+}
+
+/** One bar in the 30-day volume chart. */
+export interface ThirtyDayVolumePoint {
+  day: string;
+  dateKey: string;
+  sent: number;
+  received: number;
+}
+
+/** One point in the balance history line chart. */
+export interface BalanceHistoryPoint {
+  date: string;
+  balance: number;
+  timestamp: number;
+}
+
+const AXIS_TICK = { fill: "#94a3b8", fontSize: 12 };
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "#0f172a",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: "8px",
+};
+
 export function MonthlySpendingChart({
   data,
   loading,
   onBarClick,
 }: MonthlySpendingChartProps) {
+}: {
+  data: MonthlySpendingPoint[];
+  loading: boolean;
+  onBarClick: (data: MonthlySpendingPoint) => void;
+}) {
   const { t } = useTranslation();
 
   if (loading && data.length === 0) {
@@ -59,6 +104,12 @@ export function MonthlySpendingChart({
               state.activePayload &&
               onBarClick(state.activePayload[0].payload)
             }
+            onClick={(state) => {
+              // `activeTooltipIndex` is the index of the column the pointer is
+              // over, so a click anywhere in the column selects that month.
+              const index = state?.activeTooltipIndex;
+              if (typeof index === "number" && data[index]) onBarClick(data[index]);
+            }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis
@@ -66,6 +117,7 @@ export function MonthlySpendingChart({
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#94a3b8", fontSize: 12 }}
+              tick={AXIS_TICK}
             />
             <YAxis
               axisLine={false}
@@ -80,6 +132,12 @@ export function MonthlySpendingChart({
                 border: "1px solid rgba(255, 255, 255, 0.1)",
                 borderRadius: "8px",
               }}
+              tick={AXIS_TICK}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
+              contentStyle={TOOLTIP_STYLE}
               itemStyle={{ color: "#38bdf8" }}
             />
             <Bar dataKey="sent" fill="#38bdf8" radius={[4, 4, 0, 0]} />
@@ -103,11 +161,19 @@ export interface ThirtyDayVolumeChartProps {
 }
 
 export function ThirtyDayVolumeChart({ data, loading }: ThirtyDayVolumeChartProps) {
+export function ThirtyDayVolumeChart({
+  data,
+  loading,
+}: {
+  data: ThirtyDayVolumePoint[];
+  loading: boolean;
+}) {
   const { t } = useTranslation();
   if (loading && data.length === 0) {
     return <div className="card mb-6 h-[280px] animate-pulse bg-white/[0.03] border-white/10" />;
   }
   const visibleData = data.filter((_: any, i: number) => i % 5 === 0 || i === data.length - 1);
+  const visibleData = data.filter((_, i) => i % 5 === 0 || i === data.length - 1);
   return (
     <div className="card mb-6 overflow-hidden">
       <h2 className="font-display text-lg font-semibold text-white mb-6">{t("dashboard.thirtyDayVolumeTitle")}</h2>
@@ -121,6 +187,7 @@ export function ThirtyDayVolumeChart({ data, loading }: ThirtyDayVolumeChartProp
               tickLine={false}
               tick={{ fill: "#94a3b8", fontSize: 11 }}
               ticks={visibleData.map((d: any) => d.day)}
+              ticks={visibleData.map((d) => d.day)}
               interval="preserveStartEnd"
             />
             <YAxis
@@ -131,6 +198,7 @@ export function ThirtyDayVolumeChart({ data, loading }: ThirtyDayVolumeChartProp
             <Tooltip
               cursor={{ fill: "rgba(255,255,255,0.05)" }}
               contentStyle={{ backgroundColor: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+              contentStyle={TOOLTIP_STYLE}
               itemStyle={{ color: "#38bdf8" }}
             />
             <Bar dataKey="sent" fill="#38bdf8" name={t("dashboard.sent")} radius={[3, 3, 0, 0]} />
@@ -154,6 +222,13 @@ export interface BalanceHistoryChartProps {
 }
 
 export function BalanceHistoryChart({ data, loading }: BalanceHistoryChartProps) {
+export function BalanceHistoryChart({
+  data,
+  loading,
+}: {
+  data: BalanceHistoryPoint[];
+  loading: boolean;
+}) {
   if (loading && data.length === 0) {
     return (
       <div className="card mb-6 h-[350px] animate-pulse bg-white/[0.03] border-white/10" />
@@ -195,6 +270,7 @@ export function BalanceHistoryChart({ data, loading }: BalanceHistoryChartProps)
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#94a3b8", fontSize: 12 }}
+              tick={AXIS_TICK}
             />
             <YAxis
               axisLine={false}
@@ -209,6 +285,12 @@ export function BalanceHistoryChart({ data, loading }: BalanceHistoryChartProps)
                 borderRadius: "8px",
               }}
               formatter={(val: any) => [`${val} XLM`, "Balance"]}
+              tick={AXIS_TICK}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip
+              contentStyle={TOOLTIP_STYLE}
+              formatter={(val) => [`${val} XLM`, "Balance"]}
             />
             <Line
               type="monotone"
