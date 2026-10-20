@@ -29,6 +29,7 @@ Last reviewed: 2026-10-20
 | Batch tip payments | Shipped | [contracts/stellar-micropay-contract/src/lib.rs](contracts/stellar-micropay-contract/src/lib.rs) |
 | Admin fee controls (bps, max 500) | Shipped | [contracts/stellar-micropay-contract/src/lib.rs](contracts/stellar-micropay-contract/src/lib.rs) |
 | Receipt minting and lookup | Shipped | [contracts/stellar-micropay-contract/src/lib.rs](contracts/stellar-micropay-contract/src/lib.rs) |
+| Developer experience & CI | Shipped | [docker-compose.yml](docker-compose.yml), [.github/workflows/ci.yml](.github/workflows/ci.yml), test suites |
 
 ### Notable shipped functionality
 
