@@ -17,11 +17,11 @@ This document outlines what's been built, what's in progress, and what's planned
 
 ## 🔄 v1.1 — Developer Experience
 
-- [ ] Docker Compose setup for one-command startup
-- [ ] GitHub Actions CI pipeline
-- [ ] Unit tests for frontend components
-- [ ] API integration tests
-- [ ] Improved error handling & toast notifications
+- [x] Docker Compose setup for one-command startup
+- [x] GitHub Actions CI pipeline
+- [x] Unit tests for frontend components
+- [x] API integration tests
+- [x] Improved error handling & toast notifications
 
 ---
 
